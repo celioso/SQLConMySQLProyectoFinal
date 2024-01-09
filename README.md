@@ -312,3 +312,63 @@ Lo que aprendimos en esta aula:
 
 [Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-2 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-2.zip "aquí") para descargarlos directamente.
 
+### Haga lo que hicimos en aula
+
+Llegó la hora de que sigas todos los pasos realizados por mí durante esta clase. Si ya lo has hecho ¡Excelente! Si todavía no lo has hecho, es importante que ejecutes lo que fue visto en los vídeos para que puedas continuar con la próxima aula.
+
+1. Crea un nuevo script en Workbench.
+
+2. Vamos a ejecutar el siguiente comando:
+
+````SQL
+SELECT RAND();
+```
+
+¿Cuál es el output?
+
+El comando `RAND()` en MySQL devuelve un número aleatorio entre 0 y 1.
+
+3. Ahora, vamos a aprender a generar un número aleatorio que sea entero dentro de un rango definido. Digita y ejecuta:
+
+````SQL
+-- MIN = 20 Y MAX= 250
+-- (RAND() * (MAX-MIN+1))+MIN
+
+SELECT (RAND() * (250-20+1))+20 AS ALEATORIO;
+SELECT FLOOR((RAND() * (250-20+1))+20) AS ALEATORIO;
+```
+
+4. Crearemos una función que genere números enteros de forma aleatoria pero, primero, debemos especificar el parámetro `log_bin_trust_function_creators = 1` para poderlo hacer:
+
+````SQL
+SET GLOBAL log_bin_trust_function_creators = 1;
+```
+
+- En la base de datos **empresa** haz clic derecho en la opción **Functions** y selecciona **Create Function...**:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/9.png)
+
+-  Digita los comandos para la creación de la función llamada `f_aleatorio` como se muestra a continuación y haz clic en **Apply**:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/10.png)
+
+- Aparecerá un asistente con los comandos que ejecuta Workbench para la creación de funciones. Haz clic en **Apply** nuevamente:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/11.png)
+
+- Presiona **Finis**h y la función `f_aleatorio()` habrá sido creada
+
+### Lo que aprendimos
+
+Lo que aprendimos en esta aula:
+
+- A trabajar con la función `RAND()` de MySQL.
+- A generar números aleatorios empleando la función `RAND()`.
+- A crear una función para obtener un número entero de forma aleatoria.
+
+### Proyecto del aula anterior
+
+¿Comenzando en esta etapa? Aquí puedes descargar los archivos del proyecto que hemos avanzado hasta el aula anterior.
+
+[Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-3 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-3.zip "aquí") para descargarlos directamente.
+
