@@ -463,3 +463,124 @@ Lo que aprendimos en esta aula:
 ¿Comenzando en esta etapa? Aquí puedes descargar los archivos del proyecto que hemos avanzado hasta el aula anterior.
 
 [Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-4 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-4.zip "aquí") para descargarlos directamente.
+
+### Haga lo que hicimos en aula
+
+Llegó la hora de que sigas todos los pasos realizados por mí durante esta clase. Si ya lo has hecho ¡Excelente! Si todavía no lo has hecho, es importante que ejecutes lo que fue visto en los vídeos para que puedas continuar con la próxima aula.
+
+1. Crea un nuevo script en Workbench.
+
+2. Digita los siguientes comandos y ejecútalos varias veces:
+
+````SQL
+SELECT f_cliente_aleatorio() AS CLIENTE, 
+f_producto_aleatorio() AS PRODUCTO,
+f_vendedor_aleatorio() AS VENDEDOR;
+```
+
+¿Qué observas en cada ejecución? Los clientes, productos y vendedores son generados de forma aleatoria. Estamos listos para generar una venta ficticia.
+
+3. Ahora, crearemos un **Stored Procedure** llamado **sp_venta** en el cual estableceremos los parámetros: Fecha, número máximo de items, y cantidad máxima de cada producto. De esta manera, vamos a generar una venta utilizando las funciones creadas previamente para crear un nuevo registro en la tabla de facturas con sus respectivos productos y cantidades en la tabla de items.
+
+Para crear este **sp**, vamos a hacer lo siguiente:
+
+- En la base de datos empresa haz clic derecho en la opción **Stored Procedures** y selecciona **Create Stored Procedure...**:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/19.png)
+
+- Digita los siguientes comandos al interior del **Stored Procedure** que llamaremos `sp_ventas`. Estableceremos como parámetros: (`fecha DATE, maxitems INT, maxcantidad INT`). Digitaremos y ejecutaremos los siguientes comandos entre las cláusulas `BEGIN` y `END` del Stored Procedure:
+
+````SQL
+DECLARE vcliente VARCHAR(11);
+DECLARE vproducto VARCHAR(10);
+DECLARE vvendedor VARCHAR(5);
+DECLARE vcantidad INT;
+DECLARE vprecio FLOAT;
+DECLARE vitens INT;
+DECLARE vnfactura INT;
+DECLARE vcontador INT DEFAULT 1;
+SELECT MAX(NUMERO) + 1 INTO vnfactura FROM facturas;
+SET vcliente = f_cliente_aleatorio();
+SET vvendedor = f_vendedor_aleatorio();
+INSERT INTO facturas (NUMERO, FECHA, DNI, MATRICULA, IMPUESTO) VALUES (vnfactura, fecha, vcliente, vvendedor, 0.16);
+SET vitens = f_aleatorio(1,  maxitems);
+WHILE vcontador <= vitens
+DO
+SET vproducto = f_producto_aleatorio();
+SET vcantidad = f_aleatorio(1, maxcantidad);
+SELECT PRECIO INTO vprecio FROM productos WHERE CODIGO = vproducto;
+INSERT INTO items(NUMERO, CODIGO, CANTIDAD, PRECIO) VALUES(vnfactura, vproducto, vcantidad, vprecio);
+SET vcontador = vcontador+1;
+END WHILE;
+```
+
+- Nuestro **sp** quedará así:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/20.png)
+
+- Haz clic en **Apply** 2 veces y al final en **Finish**. Nuestro **Stored Procedure habrá sido creado**
+
+4. Vamos a probar el **sp**. Ejecutemos el siguiente comando:
+
+````SQL
+CALL sp_venta('20210619', 15, 100);
+```
+
+¿Qué sucedió?
+
+5. Se presenta un error de duplicidad en la clave primaria porque el campo `NUMERO` en las tablas de **factura** y de `items` fue definido como VARCHAR y cuando aplicamos la función MAX() al campo `NUMERO` MySQL lo evalúa como texto y no como número. Por ello, debemos eliminar nuestras tablas de `factura` y de `items` y recrearlas utilizando el datatype INT para el campo `NUMERO` en ambas tablas. Digita y ejecuta los siguientes comandos en el script de Workbench:
+
+````SQL
+DROP TABLE facturas;
+CREATE TABLE facturas(
+NUMERO INT NOT NULL,
+FECHA DATE,
+DNI VARCHAR(11) NOT NULL,
+MATRICULA VARCHAR(5) NOT NULL,
+IMPUESTO FLOAT,
+PRIMARY KEY (NUMERO),
+FOREIGN KEY (DNI) REFERENCES clientes(DNI),
+FOREIGN KEY (MATRICULA) REFERENCES vendedores(MATRICULA)
+);
+
+DROP TABLE items;
+CREATE TABLE items(
+NUMERO INT NOT NULL,
+CODIGO VARCHAR(10) NOT NULL,
+CANTIDAD INT,
+PRECIO FLOAT,
+PRIMARY KEY (NUMERO, CODIGO),
+FOREIGN KEY (NUMERO) REFERENCES facturas(NUMERO),
+FOREIGN KEY (CODIGO) REFERENCES productos(CODIGO)
+);
+
+INSERT INTO items
+SELECT NUMERO, CODIGO_DEL_PRODUCTO AS CODIGO, CANTIDAD, PRECIO
+FROM jugos_ventas.items_facturas;
+
+INSERT INTO facturas
+SELECT NUMERO, FECHA_VENTA AS FECHA, DNI, MATRICULA, IMPUESTO
+FROM jugos_ventas.facturas;
+```
+
+6. Vamos a probar el **sp** nuevamente. Ejecutemos el siguiente comando:
+
+````SQL
+CALL sp_venta('20210619', 3, 100);
+```
+
+El comando funcionó correctamente. Sin embargo, en la próxima aula, realizaremos nuevas pruebas al **Stored Procedure** para validarlo.
+
+### Lo que aprendimos
+
+Lo que aprendimos en esta aula:
+
+- A crear un **Stored Procedure** para generar una venta.
+- A utilizar ciclos iterativos con el comando `WHILE`.
+- A solucionar problemas con la Clave primaria.
+
+### Proyecto del aula anterior
+
+¿Comenzando en esta etapa? Aquí puedes descargar los archivos del proyecto que hemos avanzado hasta el aula anterior.
+
+[Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-5 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-5.zip "aquí") para descargarlos directamente.
