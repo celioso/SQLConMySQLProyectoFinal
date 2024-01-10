@@ -584,3 +584,195 @@ Lo que aprendimos en esta aula:
 ¿Comenzando en esta etapa? Aquí puedes descargar los archivos del proyecto que hemos avanzado hasta el aula anterior.
 
 [Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-5 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-5.zip "aquí") para descargarlos directamente.
+
+### Formato de facturación
+
+En la tabla de facturas tenemos el valor del impuesto. En la tabla de ítems tenemos la cantidad y la facturación. Calcula el valor del impuesto pago en el año de 2021 redondeando al mayor entero.
+
+El comando que debes ejecutar es el siguiente:
+
+````SQL
+SELECT YEAR(FECHA), CEIL(SUM(IMPUESTO * (CANTIDAD * PRECIO))) 
+AS RESULTADO
+FROM facturas F
+INNER JOIN items I ON F.NUMERO = I.NUMERO
+WHERE YEAR(FECHA) = 2021
+GROUP BY YEAR(FECHA);
+```
+
+### Haga lo que hicimos en aula
+
+Llegó la hora de que sigas todos los pasos realizados por mí durante esta clase. Si ya lo has hecho ¡Excelente! Si todavía no lo has hecho, es importante que ejecutes lo que fue visto en los vídeos para que puedas continuar con la próxima aula.
+
+1. Crea un nuevo script en Workbench.
+
+2. Para validar el **Stored Procedure** realizaremos una consulta para obtener el cálculo de la facturación y ver si efectivamente la rutina `sp_ventas` está funcionando como debería:
+
+````SQL
+SELECT A.FECHA, SUM(B.CANTIDAD*B.PRECIO) AS FACTURACION
+FROM facturas A 
+INNER JOIN
+items B
+ON A.NUMERO = B.NUMERO
+WHERE A.FECHA = '20210619'
+GROUP BY A.FECHA;
+```
+
+3. Digita y ejecuta el siguiente comando:
+
+````SQL
+CALL sp_venta('20210619', 20, 100);
+```
+
+¿Qué ha sucedido?
+
+4. Se ha presentado otro error de duplicidad en la clave primaria, esta vez en la tabla de `items` porque los campos `NUMERO` y `CODIGO` son claves primarias, y al generar 20 productos de forma aleatoria de una tabla que contiene 35 productos en total, la probabilidad de que obtengamos el mismo producto más de una vez es alta, y como la venta relaciona un mismo número de factura a los diversos productos, si se repite algún código de producto, habrá duplicidad en la tabla de `items` por tratarse del mismo número de factura. Dicho de otra forma, no podemos tener un mismo número de factura y un mismo código de producto en más de un registro en la misma tabla.
+
+Para solucionar este inconveniente, debemos crear un nuevo contador que verifique que los productos en la tabla de `items` no se repitan. Después de hacer esta verificación, el sp podrá insertar datos a la tabla de `items`. Esto lo solucionaremos estableciendo una condición con el comando `IF`. Así, lo que debemos hacer es:
+
+- Haz clic derecho sobre `sp_ventas` y selecciona la opción **Alter Stored Procedure**:
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/21.png)
+
+- Realiza los siguientes ajustes como se muestra en la imagen (Observa atentamente los comentarios en las líneas de comando):
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/22.png)
+
+- Haz clic en **Apply** 2 veces y al final en **Finish**. Nuestro **Stored Procedure habrá sido modificado**
+
+5. Digita y Ejecuta los siguientes comandos:
+
+````SQL
+CALL sp_venta('20210619', 20, 100);
+SELECT A.FECHA, SUM(B.CANTIDAD*B.PRECIO) AS FACTURACION
+FROM facturas A 
+INNER JOIN
+items B
+ON A.NUMERO = B.NUMERO
+WHERE A.FECHA = '20210619'
+GROUP BY A.FECHA;
+```
+
+Vuelve y ejecuta los comandos anteriores, pero esta vez, colocaremos el parámetro `maxitems = 100`:
+
+````SQL
+CALL sp_venta('20210619', 100, 100);
+```
+
+¿Qué sucede con la facturación?
+
+La facturación aumenta, y comprobamos que efectivamente nuestro **sp **está funcionando como esperado.
+
+6. Ahora, tomaremos los TRIGGERS que utilizamos en el curso de Manipulación de datos y los mejoraremos a través de **sp**. Digita y ejecuta los siguientes comandos:
+
+````SQL
+CREATE TABLE facturacion(
+FECHA DATE NULL,
+VENTA_TOTAL FLOAT
+);
+
+DELIMITER //
+CREATE TRIGGER TG_FACTURACION_INSERT 
+AFTER INSERT ON items
+FOR EACH ROW BEGIN
+  DELETE FROM facturacion;
+  INSERT INTO facturacion
+  SELECT A.FECHA, SUM(B.CANTIDAD * B.PRECIO) AS VENTA_TOTAL
+  FROM facturas A
+  INNER JOIN
+  items B
+  ON A.NUMERO = B.NUMERO
+  GROUP BY A.FECHA;
+END //
+
+DELIMITER //
+CREATE TRIGGER TG_FACTURACION_DELETE
+AFTER DELETE ON items
+FOR EACH ROW BEGIN
+  DELETE FROM facturacion;
+  INSERT INTO facturacion
+  SELECT A.FECHA, SUM(B.CANTIDAD * B.PRECIO) AS VENTA_TOTAL
+  FROM facturas A
+  INNER JOIN
+  items B
+  ON A.NUMERO = B.NUMERO
+  GROUP BY A.FECHA;
+END //
+
+DELIMITER //
+CREATE TRIGGER TG_FACTURACION_UPDATE
+AFTER UPDATE ON items
+FOR EACH ROW BEGIN
+  DELETE FROM facturacion;
+  INSERT INTO facturacion
+  SELECT A.FECHA, SUM(B.CANTIDAD * B.PRECIO) AS VENTA_TOTAL
+  FROM facturas A
+  INNER JOIN
+  items B
+  ON A.NUMERO = B.NUMERO
+  GROUP BY A.FECHA;
+END //
+
+SELECT * FROM facturacion WHERE FECHA = '20210622';
+
+CALL sp_venta('20210622', 15, 100);
+```
+
+7. Si en algún momento cambian las reglas de negocio, tendríamos que modificar cada TRIGGER por separado, pero si almacenamos los comandos recurrentes en un **sp**, entonces el TRIGGER siempre va a llamar al **sp** y en caso de cambios en las reglas de negocio, únicamente habría que modificar el sp. Vamos a crear un sp llamado `sp_triggers` y en el amacenaremos los comandos que se repiten en cada TRIGGER:
+
+````SQL
+DELIMITER //
+CREATE PROCEDURE `sp_triggers`()
+BEGIN
+  DELETE FROM facturacion;
+  INSERT INTO facturacion
+  SELECT A.FECHA, SUM(B.CANTIDAD * B.PRECIO) AS VENTA_TOTAL
+  FROM facturas A
+  INNER JOIN
+  items B
+  ON A.NUMERO = B.NUMERO
+  GROUP BY A.FECHA;
+END //
+```
+
+8. Finalmente, eliminaremos los TRIGGERS y los recrearemos utilizando la rutina `sp_triggers` como se muestra a continuación:
+
+````SQL
+DROP TRIGGER TG_FACTURACION_DELETE;
+DROP TRIGGER TG_FACTURACION_UPDATE;
+DROP TRIGGER TG_FACTURACION_INSERT;
+
+DELIMITER //
+CREATE TRIGGER TG_FACTURACION_INSERT 
+AFTER INSERT ON items
+FOR EACH ROW BEGIN
+  CALL sp_triggers;
+END //
+
+DELIMITER //
+CREATE TRIGGER TG_FACTURACION_DELETE
+AFTER DELETE ON items
+FOR EACH ROW BEGIN
+  CALL sp_triggers;
+END //
+
+DELIMITER //
+CREATE TRIGGER TG_FACTURACION_UPDATE
+AFTER UPDATE ON items
+FOR EACH ROW BEGIN
+  CALL sp_triggers;
+END //
+```
+
+### Proyecto final
+
+Aquí puedes descargar los archivos del proyecto completo.
+
+[Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/proyecto-final "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/proyecto-final.zip "aquí") para descargarlos directamente.
+
+### Lo que aprendimos
+
+Lo que aprendimos en esta aula:
+
+- A realizar consultas y almacenarlas en tablas auxiliares.
+- A trabajar con **TRIGGERS**.
+- A mejorar los **TRIGGERS** empleando **Stored Procedures**.
