@@ -372,3 +372,94 @@ Lo que aprendimos en esta aula:
 
 [Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-3 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-3.zip "aquí") para descargarlos directamente.
 
+### Creando las funciones para producto y vendedor aleatorio
+
+En el video de esta aula creamos una función para obtener el cliente a través de la función de número aleatorio. En este ejercicio, crea otra función para obtener el producto y también el vendedor usando como base la función aleatorio.
+
+Para crear la función que genere un producto aleatorio, los comandos son los siguientes:
+
+````SQL
+DELIMITER //
+CREATE FUNCTION `f_producto_aleatorio`() 
+RETURNS varchar(10) 
+BEGIN
+DECLARE vresultado VARCHAR(10);
+DECLARE vmax INT;
+DECLARE valeatorio INT;
+SELECT COUNT(*) INTO vmax FROM productos;
+SET valeatorio = f_aleatorio(1,vmax);
+SET valeatorio = valeatorio-1;
+SELECT CODIGO INTO vresultado FROM productos LIMIT valeatorio,1;
+RETURN vresultado;
+END //
+```
+
+Ahora bien, para generar el vendedor aleatorio, la función es:
+
+````SQL
+DELIMITER //
+CREATE FUNCTION `f_vendedor_aleatorio`() 
+RETURNS varchar(5) 
+BEGIN
+DECLARE vresultado VARCHAR(5);
+DECLARE vmax INT;
+DECLARE valeatorio INT;
+SELECT COUNT(*) INTO vmax FROM vendedores;
+SET valeatorio = f_aleatorio(1,vmax);
+SET valeatorio = valeatorio-1;
+SELECT MATRICULA INTO vresultado FROM vendedores LIMIT valeatorio,1;
+RETURN vresultado;
+END //
+```
+
+### Haga lo que hicimos en aula
+
+Llegó la hora de que sigas todos los pasos realizados por mí durante esta clase. Si ya lo has hecho ¡Excelente! Si todavía no lo has hecho, es importante que ejecutes lo que fue visto en los vídeos para que puedas continuar con la próxima aula.
+
+1. Vamos a crear una función que genere un número aleatorio y que este número aleatorio nos sirva como índice para localizar un registro específico en la tabla de clientes.
+
+- En la base de datos **empresa** haz clic derecho en la opción **Functions** y selecciona **Create Function..**.:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/12.png)
+
+- Digita los comandos para la creación de la función llamada `f_cliente_aleatorio` como se muestra a continuación (Aún no presiones **Apply**):
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/13.png)
+
+2. Vamos a recordar cómo se utiliza la cláusula LIMIT. Como su nombre lo indica, esta cláusula limita el output al número de registros especificado. Pero, si se le añade una , y un número después, ella va a contar el número de registros que anteceden a la , y a partir de allí seleccionará el número de registros especificado después de la , que puede ser 1, 2, o n registros. Veamos un ejemplo práctico. Digita y ejecuta al mismo tiempo los siguiente comandos:
+
+````SQL
+SELECT * FROM clientes;
+SELECT * FROM clientes LIMIT 5;
+SELECT * FROM clientes LIMIT 5,1;
+```
+
+El *outpu*t será respectivamente:
+
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/14.png)
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/15.png)
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/16.png)
+
+3. Ahora, debemos especificar un registro específico basados en el resultado del número aleatorio obtenido con la función `f_aleatorio`. para ello, nos apoyaremos en la cláusula LIMIT. Digita los comandos como se muestra a continuación y presiona **Apply**:
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/17.png)
+
+- Aparecerá un asistente con los comandos que ejecuta Workbench para la creación de funciones. Haz clic en **Apply** nuevamente:
+![](https://caelum-online-public.s3.amazonaws.com/ESP-1834-proyecto-final-sql-con-mysql/18.png)
+
+- Presiona Finish y la función `f_cliente_aleatorio()` habrá sido creada.
+4. Digita y ejecuta la siguiente línea de comando:
+
+¿Cuál número de DNI te devolvió la función?
+
+### Lo que aprendimos
+
+Lo que aprendimos en esta aula:
+
+- A crear una función para obtener un registro de una tabla de forma aleatoria.
+- A trabajar con el comando LIMIT para seleccionar un registro en específico.
+
+### Proyecto del aula anterior
+
+¿Comenzando en esta etapa? Aquí puedes descargar los archivos del proyecto que hemos avanzado hasta el aula anterior.
+
+[Descargue los archivos en Github](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/tree/aula-4 "Descargue los archivos en Github") o haga clic [aquí](https://github.com/alura-es-cursos/1834-proyecto-final-sql-con-mysql/archive/refs/heads/aula-4.zip "aquí") para descargarlos directamente.
